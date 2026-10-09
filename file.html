@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinPulse - Personal Finance & Budget Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+    <div class="flex h-full overflow-hidden">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between hidden md:flex border-r border-slate-800">
+            <div>
+                <!-- Logo & Brand -->
+                <div class="p-6 flex items-center space-x-3 border-b border-slate-800">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-wallet text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-white tracking-wide">FinPulse</h1>
+                        <p class="text-xs text-slate-400">Smart Financial Engine</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-emerald-600 text-white shadow-md shadow-emerald-600/30">
+                        <i class="fa-solid fa-chart-pie w-5"></i>
+                        <span>Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('transactions')" id="nav-transactions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-receipt w-5"></i>
+                        <span>Transactions</span>
+                    </button>
+                    <button onclick="switchTab('budgets')" id="nav-budgets" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-bullseye w-5"></i>
+                        <span>Budget Goals</span>
+                    </button>
+                    <button onclick="switchTab('scanner')" id="nav-scanner" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-camera-retro w-5"></i>
+                        <span>Receipt Scanner AI</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-brain w-5"></i>
+                        <span>Python Engine Logs</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer / Python Status -->
+            <div class="p-4 border-t border-slate-800">
+                <div class="bg-slate-800/60 rounded-xl p-3 border border-slate-700/50 flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div class="text-xs">
+                        <p class="font-semibold text-white">Backend Core Active</p>
+                        <p class="text-slate-400">Simulated Python v3.12</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            
+            <!-- Top Header Bar -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-20 shadow-xs">
+                <div class="flex items-center space-x-4">
+                    <button class="md:hidden text-slate-600 hover:text-slate-900" onclick="toggleMobileMenu()">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <h2 id="page-title" class="text-xl font-bold text-slate-800">Financial Dashboard</h2>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button onclick="openTransactionModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Add Transaction</span>
+                    </button>
+                    <button onclick="exportCSVData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2 border border-slate-200">
+                        <i class="fa-solid fa-file-arrow-down text-xs"></i>
+                        <span>Export CSV</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6 max-w-7xl mx-auto w-full space-y-6">
+                
+                <!-- Notification Banner -->
+                <div id="notification-banner" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm flex items-center justify-between shadow-xs">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        <span id="notification-text">Action completed successfully!</span>
+                    </div>
+                    <button onclick="hideNotification()" class="text-emerald-500 hover:text-emerald-700 font-bold">&times;</button>
+                </div>
+
+                <!-- TAB 1: DASHBOARD -->
+                <div id="tab-dashboard" class="space-y-6">
+                    <!-- Metric Cards Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-500">Total Balance</span>
+                                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-semibold">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                            </div>
+                            <h3 id="stat-balance" class="text-2xl font-bold text-slate-900 mt-2">$0.00</h3>
+                            <p class="text-xs text-emerald-600 mt-1 flex items-center font-medium"><i class="fa-solid fa-arrow-up mr-1"></i> Net Worth Status</p>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-500">Monthly Income</span>
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-semibold">
+                                    <i class="fa-solid fa-arrow-trend-up"></i>
+                                </div>
+                            </div>
+                            <h3 id="stat-income" class="text-2xl font-bold text-slate-900 mt-2">$0.00</h3>
+                            <p class="text-xs text-blue-600 mt-1 flex items-center font-medium"><i class="fa-solid fa-check mr-1"></i> Current Cycle</p>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-500">Monthly Expenses</span>
+                                <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-semibold">
+                                    <i class="fa-solid fa-arrow-trend-down"></i>
+                                </div>
+                            </div>
+                            <h3 id="stat-expenses" class="text-2xl font-bold text-slate-900 mt-2">$0.00</h3>
+                            <p class="text-xs text-rose-600 mt-1 flex items-center font-medium"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Spent this month</p>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-slate-500">Savings Rate</span>
+                                <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-semibold">
+                                    <i class="fa-solid fa-piggy-bank"></i>
+                                </div>
+                            </div>
+                            <h3 id="stat-savings-rate" class="text-2xl font-bold text-slate-900 mt-2">0%</h3>
+                            <p class="text-xs text-purple-600 mt-1 flex items-center font-medium"><i class="fa-solid fa-shield-halved mr-1"></i> Health Metric</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800">Cash Flow Trend (Income vs Expenses)</h3>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium">Last 6 Months</span>
+                            </div>
+                            <div class="h-72 relative">
+                                <canvas id="cashflowChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800">Expenses by Category</h3>
+                                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium">Current</span>
+                            </div>
+                            <div class="h-72 relative flex items-center justify-center">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions & AI Insights -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800">Recent Transactions</h3>
+                                <button onclick="switchTab('transactions')" class="text-sm text-emerald-600 hover:text-emerald-700 font-semibold">View All</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider">
+                                            <th class="py-3 font-semibold">Description</th>
+                                            <th class="py-3 font-semibold">Category</th>
+                                            <th class="py-3 font-semibold">Date</th>
+                                            <th class="py-3 font-semibold text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-transactions-list" class="text-sm divide-y divide-slate-100">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-md flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 text-emerald-400 mb-3">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span class="text-xs font-bold uppercase tracking-wider">Python AI Financial Advisor</span>
+                                </div>
+                                <h4 id="ai-advisor-title" class="text-lg font-bold mb-2">Analyzing Spending Patterns...</h4>
+                                <p id="ai-advisor-body" class="text-slate-300 text-sm leading-relaxed">
+                                    Our simulated Python backend analytics engine is reviewing your latest transactions to provide personalized budgeting insights.
+                                </p>
+                            </div>
+                            <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+                                <span>Engine: Pandas / Scikit-Rule</span>
+                                <button onclick="runPythonEngineAnalysis()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-semibold transition">Refresh Insights</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: TRANSACTIONS -->
+                <div id="tab-transactions" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">All Transactions</h3>
+                                <p class="text-sm text-slate-500">Manage, search, and filter your financial history</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="text" id="transaction-search" oninput="filterTransactions()" placeholder="Search description..." class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <select id="filter-category" onchange="filterTransactions()" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="ALL">All Categories</option>
+                                    <option value="Housing">Housing</option>
+                                    <option value="Food & Dining">Food & Dining</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Utilities">Utilities</option>
+                                    <option value="Salary">Salary</option>
+                                    <option value="Freelance">Freelance</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-4 font-semibold">Description</th>
+                                        <th class="py-3 px-4 font-semibold">Category</th>
+                                        <th class="py-3 px-4 font-semibold">Type</th>
+                                        <th class="py-3 px-4 font-semibold">Date</th>
+                                        <th class="py-3 px-4 font-semibold text-right">Amount</th>
+                                        <th class="py-3 px-4 font-semibold text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="full-transactions-list" class="text-sm divide-y divide-slate-100">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: BUDGETS -->
+                <div id="tab-budgets" class="space-y-6 hidden">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Monthly Budget Goals</h3>
+                                <p class="text-sm text-slate-500">Set and track category spending limits</p>
+                            </div>
+                            <button onclick="openBudgetModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2 rounded-xl text-sm font-semibold transition border border-slate-200">
+                                <i class="fa-solid fa-sliders mr-1"></i> Edit Limits
+                            </button>
+                        </div>
+
+                        <div id="budgets-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: SCANNER -->
+                <div id="tab-scanner" class="space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                        <i class="fa-solid fa-camera"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-900">AI Receipt OCR Scanner</h3>
+                                        <p class="text-xs text-slate-500">Simulate Python Tesseract & LLM Parsing</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-6">
+                                    Upload or pick a sample receipt image. Our Python backend simulator will extract the vendor, date, tax, and total amount automatically, categorizing the expense instantly.
+                                </p>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Select Sample Receipt</label>
+                                        <select id="sample-receipt-select" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                            <option value="grocery">Whole Foods Supermarket ($124.50)</option>
+                                            <option value="gas">Shell Oil Gasoline ($45.00)</option>
+                                            <option value="dining">Starbucks Coffee ($6.85)</option>
+                                            <option value="tech">Best Buy Electronics ($299.99)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-emerald-500 transition cursor-pointer" onclick="simulateReceiptScan()">
+                                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+                                        <p class="text-sm font-semibold text-slate-700">Click to Scan & Extract Receipt</p>
+                                        <p class="text-xs text-slate-400 mt-1">PNG, JPG, WEBP up to 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="scanner-status" class="mt-6 hidden bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm">
+                                <div class="flex items-center space-x-2 font-semibold mb-1">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>OCR Extraction Successful!</span>
+                                </div>
+                                <p id="scanner-result-text" class="text-xs text-emerald-700"></p>
+                            </div>
+                        </div>
+
+                        <!-- Receipt Preview Card -->
+                        <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Simulated Receipt View</span>
+                                    <span id="receipt-vendor-tag" class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-semibold">Whole Foods</span>
+                                </div>
+                                <div id="receipt-preview-box" class="bg-slate-800 p-5 rounded-xl border border-slate-700 font-mono text-xs space-y-2 text-slate-300">
+                                    <p class="text-center font-bold text-white text-sm pb-2 border-b border-slate-700">WHOLE FOODS MARKET #1042</p>
+                                    <p>Date: <span id="rec-date">2026-10-09</span></p>
+                                    <p>Cashier: Sarah M.</p>
+                                    <div class="py-2 border-y border-slate-700 space-y-1">
+                                        <div class="flex justify-between"><span>Organic Avocados</span><span>$5.99</span></div>
+                                        <div class="flex justify-between"><span>Almond Milk 1L</span><span>$4.49</span></div>
+                                        <div class="flex justify-between"><span>Sourdough Bread</span><span>$6.50</span></div>
+                                        <div class="flex justify-between"><span>Ribeye Steak 1lb</span><span>$107.52</span></div>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-white text-sm pt-2">
+                                        <span>TOTAL</span>
+                                        <span id="rec-total" class="text-emerald-400">$124.50</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6">
+                                <button onclick="addScannedReceiptToTransactions()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-sm">
+                                    Add Extracted Expense to Ledger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: PYTHON ENGINE LOGS -->
+                <div id="tab-analytics" class="space-y-6 hidden">
+                    <div class="bg-slate-900 text-slate-200 p-6 rounded-2xl border border-slate-800 shadow-md">
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-800">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                                    <i class="fa-brands fa-python text-emerald-400"></i>
+                                    <span>Python Backend Console & Pandas Dataframe</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Real-time simulation of Python financial analytics script execution</p>
+                            </div>
+                            <button onclick="runPythonEngineAnalysis()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">
+                                Re-run Script
+                            </button>
+                        </div>
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 h-80 overflow-y-auto space-y-2" id="python-logs">
+                            <p>[INFO] Initializing Python 3.12 runtime environment...</p>
+                            <p>[INFO] Importing pandas as pd, numpy as np, matplotlib.pyplot as plt</p>
+                            <p>[INFO] Loading transaction database from localStorage...</p>
+                            <p>[SUCCESS] Loaded 12 active financial records.</p>
+                            <p>[ANALYTICS] Computing monthly burn rate and category aggregations...</p>
+                            <p>[SUCCESS] Generated optimized budgeting recommendations.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div id="transaction-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Add New Transaction</h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+            <form id="transaction-form" onsubmit="handleTransactionSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Type</label>
+                    <select id="tx-type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="expense">Expense (-)</option>
+                        <option value="income">Income (+)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Description</label>
+                    <input type="text" id="tx-desc" required placeholder="e.g. Trader Joe's Groceries" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Amount ($)</label>
+                    <input type="number" step="0.01" id="tx-amount" required placeholder="45.50" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Category</label>
+                    <select id="tx-category" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="Housing">Housing</option>
+                        <option value="Food & Dining">Food & Dining</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Date</label>
+                    <input type="date" id="tx-date" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeTransactionModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-semibold transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold transition shadow-sm">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Budget Limits Modal -->
+    <div id="budget-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Configure Monthly Budgets</h3>
+                <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+            </div>
+            <form id="budget-form" onsubmit="handleBudgetSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Housing Limit ($)</label>
+                    <input type="number" id="budget-Housing" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="1500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Food & Dining Limit ($)</label>
+                    <input type="number" id="budget-Food" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Transportation Limit ($)</label>
+                    <input type="number" id="budget-Transportation" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="400">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Entertainment Limit ($)</label>
+                    <input type="number" id="budget-Entertainment" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="300">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Utilities Limit ($)</label>
+                    <input type="number" id="budget-Utilities" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="250">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeBudgetModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-sm font-semibold transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-sm font-semibold transition shadow-sm">Save Limits</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Default Mock Data if localStorage is empty
+        const defaultTransactions = [
+            { id: 1, desc: "Monthly Salary", category: "Salary", type: "income", date: "2026-10-01", amount: 4800.00 },
+            { id: 2, desc: "Apartment Rent", category: "Housing", type: "expense", date: "2026-10-02", amount: 1450.00 },
+            { id: 3, desc: "Whole Foods Market", category: "Food & Dining", type: "expense", date: "2026-10-04", amount: 124.50 },
+            { id: 4, desc: "Shell Gasoline", category: "Transportation", type: "expense", date: "2026-10-05", amount: 48.20 },
+            { id: 5, desc: "Netflix & Spotify", category: "Entertainment", type: "expense", date: "2026-10-06", amount: 32.98 },
+            { id: 6, desc: "Electric & Wi-Fi Bill", category: "Utilities", type: "expense", date: "2026-10-07", amount: 142.10 },
+            { id: 7, desc: "Freelance Web Design", category: "Freelance", type: "income", date: "2026-10-08", amount: 750.00 }
+        ];
+
+        const defaultBudgets = {
+            "Housing": 1500,
+            "Food & Dining": 600,
+            "Transportation": 400,
+            "Entertainment": 300,
+            "Utilities": 250
+        };
+
+        let transactions = JSON.parse(localStorage.getItem('finpulse_transactions')) || defaultTransactions;
+        let budgets = JSON.parse(localStorage.getItem('finpulse_budgets')) || defaultBudgets;
+
+        let cashflowChartInstance = null;
+        let categoryChartInstance = null;
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            // Set default date in modal to today
+            document.getElementById('tx-date').valueAsDate = new Date();
+            renderAll();
+            initCharts();
+            runPythonEngineAnalysis();
+        };
+
+        // Tab Navigation
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'transactions', 'budgets', 'scanner', 'analytics'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    if (nav) {
+                        nav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all bg-emerald-600 text-white shadow-md shadow-emerald-600/30";
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    if (nav) {
+                        nav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white";
+                    }
+                }
+            });
+
+            // Update page title
+            const titles = {
+                'dashboard': 'Financial Dashboard',
+                'transactions': 'Transaction Ledger',
+                'budgets': 'Budget Goals & Limits',
+                'scanner': 'AI Receipt OCR Scanner',
+                'analytics': 'Python Backend Console'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+        }
+
+        // Render All Data
+        function renderAll() {
+            localStorage.setItem('finpulse_transactions', JSON.stringify(transactions));
+            localStorage.setItem('finpulse_budgets', JSON.stringify(budgets));
+
+            renderMetrics();
+            renderRecentTransactions();
+            renderFullTransactions();
+            renderBudgets();
+            updateCharts();
+        }
+
+        // Calculate and Render Metrics
+        function renderMetrics() {
+            let totalIncome = 0;
+            let totalExpenses = 0;
+
+            transactions.forEach(t => {
+                if (t.type === 'income') totalIncome += Number(t.amount);
+                else totalExpenses += Number(t.amount);
+            });
+
+            const netBalance = totalIncome - totalExpenses;
+            const savingsRate = totalIncome > 0 ? Math.max(0, Math.round(((totalIncome - totalExpenses) / totalIncome) * 100)) : 0;
+
+            document.getElementById('stat-balance').innerText = `$${netBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-income').innerText = `$${totalIncome.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-expenses').innerText = `$${totalExpenses.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('stat-savings-rate').innerText = `${savingsRate}%`;
+        }
+
+        // Recent Transactions Table (Dashboard)
+        function renderRecentTransactions() {
+            const tbody = document.getElementById('recent-transactions-list');
+            tbody.innerHTML = '';
+
+            const sorted = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+            if (sorted.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">No transactions recorded yet.</td></tr>`;
+                return;
+            }
+
+            sorted.forEach(t => {
+                const isInc = t.type === 'income';
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition";
+                row.innerHTML = `
+                    <td class="py-3 font-medium text-slate-900">${t.desc}</td>
+                    <td class="py-3"><span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium">${t.category}</span></td>
+                    <td class="py-3 text-slate-500 text-xs">${t.date}</td>
+                    <td class="py-3 text-right font-bold ${isInc ? 'text-emerald-600' : 'text-slate-800'}">${isInc ? '+' : '-'}$${Number(t.amount).toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Full Transactions Table
+        function renderFullTransactions() {
+            const tbody = document.getElementById('full-transactions-list');
+            const searchVal = document.getElementById('transaction-search').value.toLowerCase();
+            const catVal = document.getElementById('filter-category').value;
+
+            tbody.innerHTML = '';
+
+            const filtered = transactions.filter(t => {
+                const matchesSearch = t.desc.toLowerCase().includes(searchVal);
+                const matchesCat = catVal === 'ALL' || t.category === catVal;
+                return matchesSearch && matchesCat;
+            }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">No matching transactions found.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                const isInc = t.type === 'income';
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition";
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-slate-900">${t.desc}</td>
+                    <td class="py-3 px-4"><span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-medium">${t.category}</span></td>
+                    <td class="py-3 px-4"><span class="text-xs font-semibold uppercase ${isInc ? 'text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md' : 'text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md'}">${t.type}</span></td>
+                    <td class="py-3 px-4 text-slate-500 text-xs">${t.date}</td>
+                    <td class="py-3 px-4 text-right font-bold ${isInc ? 'text-emerald-600' : 'text-slate-800'}">${isInc ? '+' : '-'}$${Number(t.amount).toFixed(2)}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="deleteTransaction(${t.id})" class="text-slate-400 hover:text-rose-600 transition p-1"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterTransactions() {
+            renderFullTransactions();
+        }
+
+        // Render Budgets Progress
+        function renderBudgets() {
+            const container = document.getElementById('budgets-container');
+            container.innerHTML = '';
+
+            // Calculate spent per category
+            const spentMap = {};
+            transactions.filter(t => t.type === 'expense').forEach(t => {
+                spentMap[t.category] = (spentMap[t.category] || 0) + Number(t.amount);
+            });
+
+            Object.keys(budgets).forEach(cat => {
+                const limit = budgets[cat];
+                const spent = spentMap[cat] || 0;
+                const pct = Math.min(100, Math.round((spent / limit) * 100));
+                let colorClass = 'bg-emerald-500';
+                if (pct > 80) colorClass = 'bg-amber-500';
+                if (pct >= 100) colorClass = 'bg-rose-500';
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-slate-900">${cat}</h4>
+                            <span class="text-xs font-bold text-slate-500">$${spent.toFixed(0)} / $${limit}</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mb-3">
+                            <div class="${colorClass} h-2.5 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500">${pct}% of budget used</span>
+                        <span class="font-semibold ${pct >= 100 ? 'text-rose-600' : 'text-emerald-600'}">${pct >= 100 ? 'Limit Exceeded!' : `$${(limit - spent).toFixed(0)} remaining`}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Cashflow Line Chart
+            const ctx1 = document.getElementById('cashflowChart').getContext('2d');
+            cashflowChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: [4200, 4500, 4600, 4400, 4800, 5550],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Expenses',
+                            data: [3100, 3400, 3200, 3600, 3300, 1897],
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                }
+            });
+
+            // Category Doughnut Chart
+            const ctx2 = document.getElementById('categoryChart').getContext('2d');
+            categoryChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Housing', 'Food', 'Transport', 'Entertainment', 'Utilities'],
+                    datasets: [{
+                        data: [1450, 124, 48, 33, 142],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#f43f5e']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Recalculate category totals for doughnut chart
+            const catTotals = { 'Housing': 0, 'Food & Dining': 0, 'Transportation': 0, 'Entertainment': 0, 'Utilities': 0 };
+            transactions.filter(t => t.type === 'expense').forEach(t => {
+                if (catTotals[t.category] !== undefined) {
+                    catTotals[t.category] += Number(t.amount);
+                } else {
+                    catTotals['Other'] = (catTotals['Other'] || 0) + Number(t.amount);
+                }
+            });
+
+            if (categoryChartInstance) {
+                categoryChartInstance.data.datasets[0].data = Object.values(catTotals);
+                categoryChartInstance.update();
+            }
+        }
+
+        // Modals management
+        function openTransactionModal() {
+            document.getElementById('transaction-modal').classList.remove('hidden');
+        }
+        function closeTransactionModal() {
+            document.getElementById('transaction-modal').classList.add('hidden');
+        }
+        function openBudgetModal() {
+            document.getElementById('budget-modal').classList.remove('hidden');
+        }
+        function closeBudgetModal() {
+            document.getElementById('budget-modal').classList.add('hidden');
+        }
+
+        // Handle Add Transaction
+        function handleTransactionSubmit(e) {
+            e.preventDefault();
+            const newTx = {
+                id: Date.now(),
+                desc: document.getElementById('tx-desc').value,
+                amount: parseFloat(document.getElementById('tx-amount').value),
+                category: document.getElementById('tx-category').value,
+                type: document.getElementById('tx-type').value,
+                date: document.getElementById('tx-date').value
+            };
+
+            transactions.push(newTx);
+            closeTransactionModal();
+            document.getElementById('transaction-form').reset();
+            document.getElementById('tx-date').valueAsDate = new Date();
+            renderAll();
+            showNotification('Transaction added successfully!');
+        }
+
+        // Delete Transaction
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            renderAll();
+            showNotification('Transaction removed.');
+        }
+
+        // Handle Budget Limits Save
+        function handleBudgetSubmit(e) {
+            e.preventDefault();
+            budgets["Housing"] = parseFloat(document.getElementById('budget-Housing').value) || 1500;
+            budgets["Food & Dining"] = parseFloat(document.getElementById('budget-Food').value) || 600;
+            budgets["Transportation"] = parseFloat(document.getElementById('budget-Transportation').value) || 400;
+            budgets["Entertainment"] = parseFloat(document.getElementById('budget-Entertainment').value) || 300;
+            budgets["Utilities"] = parseFloat(document.getElementById('budget-Utilities').value) || 250;
+
+            closeBudgetModal();
+            renderAll();
+            showNotification('Budget limits updated successfully!');
+        }
+
+        // Receipt Scanner Simulator
+        const sampleReceiptsData = {
+            grocery: { vendor: 'Whole Foods Market', date: '2026-10-09', category: 'Food & Dining', amount: 124.50, items: ['Organic Avocados $5.99', 'Almond Milk $4.49', 'Sourdough Bread $6.50', 'Ribeye Steak $107.52'] },
+            gas: { vendor: 'Shell Oil Gasoline', date: '2026-10-09', category: 'Transportation', amount: 45.00, items: ['Regular Unleaded 12.5 gal @ $3.60'] },
+            dining: { vendor: 'Starbucks Coffee', date: '2026-10-09', category: 'Food & Dining', amount: 6.85, items: ['Caramel Macchiato Grande $5.75', 'Tax $1.10'] },
+            tech: { vendor: 'Best Buy Electronics', date: '2026-10-09', category: 'Entertainment', amount: 299.99, items: ['Sony WH-1000XM4 Headphones $299.99'] }
+        };
+
+        let lastScannedReceipt = null;
+
+        function simulateReceiptScan() {
+            const val = document.getElementById('sample-receipt-select').value;
+            const data = sampleReceiptsData[val];
+            lastScannedReceipt = data;
+
+            document.getElementById('receipt-vendor-tag').innerText = data.vendor;
+            document.getElementById('rec-date').innerText = data.date;
+            document.getElementById('rec-total').innerText = `$${data.amount.toFixed(2)}`;
+            
+            const previewBox = document.getElementById('receipt-preview-box');
+            let itemsHtml = `<p class="text-center font-bold text-white text-sm pb-2 border-b border-slate-700">${data.vendor.toUpperCase()}</p><p>Date: ${data.date}</p><div class="py-2 border-y border-slate-700 space-y-1">`;
+            data.items.forEach(item => {
+                itemsHtml += `<div class="flex justify-between"><span>${item}</span></div>`;
+            });
+            itemsHtml += `</div><div class="flex justify-between font-bold text-white text-sm pt-2"><span>TOTAL</span><span class="text-emerald-400">$${data.amount.toFixed(2)}</span></div>`;
+            previewBox.innerHTML = itemsHtml;
+
+            const status = document.getElementById('scanner-status');
+            status.classList.remove('hidden');
+            document.getElementById('scanner-result-text').innerText = `Extracted Vendor: ${data.vendor} | Amount: $${data.amount.toFixed(2)} | Category Assigned: ${data.category}`;
+        }
+
+        function addScannedReceiptToTransactions() {
+            if (!lastScannedReceipt) {
+                simulateReceiptScan();
+            }
+            const data = lastScannedReceipt || sampleReceiptsData['grocery'];
+            transactions.push({
+                id: Date.now(),
+                desc: data.vendor,
+                category: data.category,
+                type: 'expense',
+                date: data.date,
+                amount: data.amount
+            });
+            renderAll();
+            switchTab('dashboard');
+            showNotification(`Successfully added ${data.vendor} ($${data.amount.toFixed(2)}) to ledger!`);
+        }
+
+        // Python Engine Analysis Simulator
+        function runPythonEngineAnalysis() {
+            const logsBox = document.getElementById('python-logs');
+            const logs = [
+                `[INFO] Initializing Python 3.12 runtime environment...`,
+                `[INFO] Importing pandas as pd, numpy as np, scikit-learn...`,
+                `[INFO] Serializing ${transactions.length} transaction records into DataFrame...`,
+                `[ANALYTICS] Running rolling 30-day moving average on expenses...`,
+                `[ANALYTICS] Category breakdown computed successfully.`,
+                `[INSIGHT] Savings rate is healthy at ${(transactions.filter(t=>t.type==='income').reduce((a,b)=>a+b.amount,0) > 0 ? 'optimal' : 'low')}.`,
+                `[SUCCESS] Python script execution completed in 0.042s.`
+            ];
+
+            logsBox.innerHTML = '';
+            logs.forEach((log, idx) => {
+                setTimeout(() => {
+                    const p = document.createElement('p');
+                    p.innerText = log;
+                    logsBox.appendChild(p);
+                    logsBox.scrollTop = logsBox.scrollHeight;
+                }, idx * 150);
+            });
+
+            // Update AI advisor box
+            const totalExp = transactions.filter(t => t.type === 'expense').reduce((a,b) => a + b.amount, 0);
+            const totalInc = transactions.filter(t => t.type === 'income').reduce((a,b) => a + b.amount, 0);
+            
+            document.getElementById('ai-advisor-title').innerText = totalInc > totalExp ? "Finances are Optimized 🚀" : "Expense Alert: Monitor Burn Rate";
+            document.getElementById('ai-advisor-body').innerText = `Python backend regression analysis shows your monthly expenses are running at $${totalExp.toFixed(2)} against $${totalInc.toFixed(2)} income. Keep food & dining within your $600 threshold to maximize annual savings.`;
+        }
+
+        // Export CSV Function
+        function exportCSVData() {
+            let csvContent = "data:text/csv;charset=utf-8,ID,Description,Category,Type,Date,Amount\n";
+            transactions.forEach(t => {
+                csvContent += `${t.id},"${t.desc}","${t.category}",${t.type},${t.date},${t.amount}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "finpulse_transactions_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('CSV exported successfully!');
+        }
+
+        // Notification Helper
+        function showNotification(msg) {
+            const banner = document.getElementById('notification-banner');
+            document.getElementById('notification-text').innerText = msg;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 4000);
+        }
+        function hideNotification() {
+            document.getElementById('notification-banner').classList.add('hidden');
+        }
+
+        // Mobile Menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('aside');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('absolute');
+            sidebar.classList.toggle('z-50');
+            sidebar.classList.toggle('h-full');
+        }
+    </script>
+</body>
+</html>
