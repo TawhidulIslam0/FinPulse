@@ -42,5 +42,5 @@
 
 Because FinPulse is built as a self-contained, single-file application (`index.html`), running it requires **zero installation or backend server setup**:
 
-1. Save both `index.html` and `README.md` into the same folder on your computer.
+1. Save `index.html`  into the same folder on your computer.
 2. Double-click `index.html` to open it directly in any modern web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Apple Safari).
